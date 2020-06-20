@@ -17,10 +17,11 @@ data_gen_args = dict(rotation_range=0.2,
 myGene = trainGenerator(2,'data/membrane/train','image','label',data_gen_args,save_to_dir = None)
 
 model = unet()
-#仅保存性能最好的模型
-model_checkpoint = ModelCheckpoint('unet_membrane.hdf5', monitor='loss',verbose=1, save_best_only=True)
-#设置训练参数，step200，epoch2
-model.fit_generator(myGene,steps_per_epoch=200,epochs=2,callbacks=[model_checkpoint])
+#使用CLR学习率
+clr = CyclicLR(base_lr=0.0001, max_lr=0.0006,
+                   step_size=2000., mode='exp_range',
+                   gamma=0.99994)
+model.fit_generator(myGene, batch_size=20, nb_epoch=1,callbacks=[clr])
 
 testGene = testGenerator("data/membrane/test")
 results = model.predict_generator(testGene,30,verbose=1)
